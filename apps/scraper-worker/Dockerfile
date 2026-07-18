@@ -1,0 +1,19 @@
+# Build from the repo root: docker build -f apps/scraper-worker/Dockerfile .
+# Debian slim (not alpine) so Playwright's Chromium deps can be installed in Phase 3:
+#   RUN npx playwright install --with-deps chromium
+FROM node:22-bookworm-slim AS build
+WORKDIR /repo
+COPY . .
+RUN npm ci
+RUN npx turbo run build --filter=@rag/scraper-worker
+
+FROM node:22-bookworm-slim
+WORKDIR /repo
+ENV NODE_ENV=production
+COPY --from=build /repo/package.json /repo/package-lock.json ./
+COPY --from=build /repo/node_modules ./node_modules
+COPY --from=build /repo/packages/shared/package.json ./packages/shared/package.json
+COPY --from=build /repo/packages/shared/dist ./packages/shared/dist
+COPY --from=build /repo/apps/scraper-worker/package.json ./apps/scraper-worker/package.json
+COPY --from=build /repo/apps/scraper-worker/dist ./apps/scraper-worker/dist
+CMD ["node", "apps/scraper-worker/dist/index.js"]
