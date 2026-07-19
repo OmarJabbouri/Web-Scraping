@@ -12,7 +12,12 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json,yml}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,yml}\"",
+    "db:migrate": "npm run migrate --workspace=@rag/db",
+    "db:migrate:undo": "npm run migrate:undo --workspace=@rag/db",
+    "db:migrate:status": "npm run migrate:status --workspace=@rag/db",
+    "db:seed": "npm run seed --workspace=@rag/db",
+    "db:seed:undo": "npm run seed:undo --workspace=@rag/db"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

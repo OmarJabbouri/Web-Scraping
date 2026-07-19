@@ -56,15 +56,15 @@ flowchart LR
 
 Sequelize + `sequelize-cli` migrations (never `sync()` — migrations are the requirement).
 
-- [ ] **1.1** Migration: enable `vector` extension (pgvector)
-- [ ] **1.2** `sites` — id, name, base_url, robots_txt (cached), crawl_delay_ms, allowed (bool), render_mode (static | js)
-- [ ] **1.3** `pages` — id, site_id, url (unique), status, content_hash, last_crawled_at, http_status
-- [ ] **1.4** `page_versions` — id, page_id, version_no, raw_html (or path), content_hash, fetched_at
+- [x] **1.1** Migration: enable `vector` extension (pgvector)
+- [x] **1.2** `sites` — id, name, base_url, robots_txt (cached), crawl_delay_ms, allowed (bool), render_mode (static | js)
+- [x] **1.3** `pages` — id, site_id, url (unique), status, content_hash, last_crawled_at, http_status
+- [x] **1.4** `page_versions` — id, page_id, version_no, raw_html (or path), content_hash, fetched_at
       → satisfies the "versioning, no silent overwrite" requirement
-- [ ] **1.5** `documents` — id, page_version_id, title, cleaned_text, structured_data JSONB (tables etc.), content_type
-- [ ] **1.6** `chunks` — id, document_id, chunk_index, text, token_count, embedding `vector(1536)` (dimension depends on embedding model), tsvector column for keyword search
-- [ ] **1.7** Indexes: HNSW (or IVFFlat) on embedding, GIN on tsvector, unique on (page_id) url
-- [ ] **1.8** Seed script for the 3 target sites
+- [x] **1.5** `documents` — id, page_version_id, title, cleaned_text, structured_data JSONB (tables etc.), content_type
+- [x] **1.6** `chunks` — id, document_id, chunk_index, text, token_count, embedding `vector(1536)` (dimension depends on embedding model), tsvector column for keyword search
+- [x] **1.7** Indexes: HNSW (or IVFFlat) on embedding, GIN on tsvector, unique on (page_id) url
+- [x] **1.8** Seed script for the 3 target sites — *2 of 3 seeded (books.toscrape.com, quotes.toscrape.com/js); 3rd real-world site TBD in Phase 3 per D1*
 
 ## Phase 2 — Queue Infrastructure (Day 2)
 

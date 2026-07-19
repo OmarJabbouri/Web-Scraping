@@ -1,0 +1,35 @@
+{
+  "name": "@rag/db",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "migrate": "sequelize-cli db:migrate --config config/config.cjs --migrations-path migrations --seeders-path seeders",
+    "migrate:undo": "sequelize-cli db:migrate:undo --config config/config.cjs --migrations-path migrations --seeders-path seeders",
+    "migrate:undo:all": "sequelize-cli db:migrate:undo:all --config config/config.cjs --migrations-path migrations --seeders-path seeders",
+    "migrate:status": "sequelize-cli db:migrate:status --config config/config.cjs --migrations-path migrations --seeders-path seeders",
+    "seed": "sequelize-cli db:seed:all --config config/config.cjs --migrations-path migrations --seeders-path seeders",
+    "seed:undo": "sequelize-cli db:seed:undo:all --config config/config.cjs --migrations-path migrations --seeders-path seeders"
+  },
+  "dependencies": {
+    "@rag/shared": "*",
+    "dotenv": "^16.4.7",
+    "pg": "^8.13.1",
+    "pgvector": "^0.2.0",
+    "sequelize": "^6.37.5"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.6.2"
+  }
+}
