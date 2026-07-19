@@ -12,6 +12,7 @@ Turborepo monorepo (npm workspaces): TypeScript, Node.js, React, PostgreSQL (pgv
 | `apps/processing-worker` | Cleans/normalizes raw HTML into documents |
 | `apps/indexing-worker` | Chunks + embeds documents into pgvector |
 | `apps/web` | React (Vite) dashboard/search/ask UI |
+| `packages/db` | Sequelize models + migrations/seeders (pgvector schema) |
 
 ## Local development
 
@@ -19,7 +20,22 @@ Turborepo monorepo (npm workspaces): TypeScript, Node.js, React, PostgreSQL (pgv
 cp .env.example .env
 npm install
 docker compose up -d postgres redis   # infra only, as images
+npm run db:migrate                    # apply schema (packages/db/migrations)
+npm run db:seed                       # seed the 3 target sites
 npm run dev                           # turbo runs all dev tasks
+```
+
+Postgres runs on host port `5433` (not the default `5432`) to avoid clashing with a
+native Postgres install — see the comment in `docker-compose.yml` if you need to change it.
+
+### Database commands
+
+```bash
+npm run db:migrate          # apply pending migrations
+npm run db:migrate:undo     # roll back the last migration
+npm run db:migrate:status   # list migration state
+npm run db:seed             # run seeders
+npm run db:seed:undo        # undo seeders
 ```
 
 ## Full stack in Docker

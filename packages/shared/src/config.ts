@@ -7,7 +7,7 @@ const envSchema = z.object({
   DATABASE_URL: z
     .string()
     .url()
-    .default('postgres://rag:rag@localhost:5432/rag'),
+    .default('postgres://rag:rag@localhost:5433/rag'),
   REDIS_URL: z.string().url().default('redis://localhost:6380'),
   // Required from Phase 5 (embeddings + RAG answers); optional until then.
   OPENAI_API_KEY: z.string().optional(),
