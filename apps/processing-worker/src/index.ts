@@ -1,14 +1,17 @@
-import { loadConfig } from '@rag/shared';
+import { loadConfig, createWorker, type ProcessJob } from '@rag/shared';
+import { recordDeadLetter } from '@rag/db';
+import type { Job } from 'bullmq';
 
 const config = loadConfig();
-
 console.log(`[processing-worker] started (env: ${config.NODE_ENV}, redis: ${config.REDIS_URL})`);
-console.log('[processing-worker] waiting for BullMQ consumer — implemented in Phase 2/4');
 
-// Keep the process alive until the BullMQ worker (Phase 2) takes over this role.
-setInterval(() => {}, 1 << 30);
-
-process.on('SIGTERM', () => {
-  console.log('[processing-worker] SIGTERM received, shutting down');
-  process.exit(0);
-});
+// Consume the `process` queue. Real cleaning/normalization logic lands in Phase 4.
+createWorker(
+  'process',
+  async (job: Job<ProcessJob>) => {
+    console.log(`[processing-worker] process job ${job.id}: pageVersion=${job.data.pageVersionId}`);
+    // Phase 4: Readability/Cheerio strip → extract text/tables/links → insert `documents` → enqueue `index`.
+    return { ok: true };
+  },
+  { concurrency: 2, onFinalFailure: recordDeadLetter },
+);

@@ -68,12 +68,12 @@ Sequelize + `sequelize-cli` migrations (never `sync()` — migrations are the re
 
 ## Phase 2 — Queue Infrastructure (Day 2)
 
-- [ ] **2.1** `packages/shared`: BullMQ queue definitions + typed job payloads — queues: `scrape`, `process`, `index`
-- [ ] **2.2** Retry policy: 3–5 attempts, exponential backoff with jitter
-- [ ] **2.3** **Dead-letter mechanism**: on final failure move job to a `dead-letter` queue + `failed_jobs` table with error details (explicit requirement)
-- [ ] **2.4** Per-domain rate limiting: BullMQ group/limiter or a Redis token bucket keyed by domain, honoring `crawl_delay_ms`
-- [ ] **2.5** Bull Board dashboard mounted on the API (`/admin/queues`) — great for the demo video
-- [ ] **2.6** Graceful shutdown (SIGTERM → finish/release current job) so killed workers demo cleanly
+- [x] **2.1** `packages/shared`: BullMQ queue definitions + typed job payloads — queues: `scrape`, `process`, `index`
+- [x] **2.2** Retry policy: 3–5 attempts, exponential backoff with jitter (custom BullMQ backoff strategy)
+- [x] **2.3** **Dead-letter mechanism**: on final failure move job to a `dead-letter` queue + `failed_jobs` table with error details (explicit requirement)
+- [x] **2.4** Per-domain rate limiting: Redis token-bucket (atomic Lua) keyed by domain, honoring `crawl_delay_ms` across all workers
+- [x] **2.5** Bull Board dashboard mounted on the API (`/admin/queues`) — great for the demo video
+- [x] **2.6** Graceful shutdown (SIGTERM → finish/release current job) so killed workers demo cleanly
 
 ## Phase 3 — Scraper Workers (Day 2–3) ← biggest module
 

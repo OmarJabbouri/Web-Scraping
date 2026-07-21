@@ -17,7 +17,9 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "bullmq": "^5.34.0",
     "dotenv": "^16.4.7",
+    "ioredis": "^5.4.2",
     "zod": "^3.24.1"
   }
 }

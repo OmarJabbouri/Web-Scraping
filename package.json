@@ -17,13 +17,16 @@
     "db:migrate:undo": "npm run migrate:undo --workspace=@rag/db",
     "db:migrate:status": "npm run migrate:status --workspace=@rag/db",
     "db:seed": "npm run seed --workspace=@rag/db",
-    "db:seed:undo": "npm run seed:undo --workspace=@rag/db"
+    "db:seed:undo": "npm run seed:undo --workspace=@rag/db",
+    "test:phase2": "tsx scripts/test-phase2.ts",
+    "demo:enqueue": "tsx scripts/enqueue.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.5",
     "eslint": "^9.17.0",
     "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.0"

@@ -1,14 +1,17 @@
-import { loadConfig } from '@rag/shared';
+import { loadConfig, createWorker, type IndexJob } from '@rag/shared';
+import { recordDeadLetter } from '@rag/db';
+import type { Job } from 'bullmq';
 
 const config = loadConfig();
-
 console.log(`[indexing-worker] started (env: ${config.NODE_ENV}, redis: ${config.REDIS_URL})`);
-console.log('[indexing-worker] waiting for BullMQ consumer — implemented in Phase 2/5');
 
-// Keep the process alive until the BullMQ worker (Phase 2) takes over this role.
-setInterval(() => {}, 1 << 30);
-
-process.on('SIGTERM', () => {
-  console.log('[indexing-worker] SIGTERM received, shutting down');
-  process.exit(0);
-});
+// Consume the `index` queue. Real chunking/embedding logic lands in Phase 5.
+createWorker(
+  'index',
+  async (job: Job<IndexJob>) => {
+    console.log(`[indexing-worker] index job ${job.id}: document=${job.data.documentId}`);
+    // Phase 5: structure-aware chunking → batch embed (OpenAI) → store vectors in pgvector.
+    return { ok: true };
+  },
+  { concurrency: 1, onFinalFailure: recordDeadLetter },
+);
