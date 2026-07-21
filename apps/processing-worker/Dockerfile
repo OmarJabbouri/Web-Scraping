@@ -12,6 +12,8 @@ COPY --from=build /repo/package.json /repo/package-lock.json ./
 COPY --from=build /repo/node_modules ./node_modules
 COPY --from=build /repo/packages/shared/package.json ./packages/shared/package.json
 COPY --from=build /repo/packages/shared/dist ./packages/shared/dist
+COPY --from=build /repo/packages/db/package.json ./packages/db/package.json
+COPY --from=build /repo/packages/db/dist ./packages/db/dist
 COPY --from=build /repo/apps/processing-worker/package.json ./apps/processing-worker/package.json
 COPY --from=build /repo/apps/processing-worker/dist ./apps/processing-worker/dist
 CMD ["node", "apps/processing-worker/dist/index.js"]

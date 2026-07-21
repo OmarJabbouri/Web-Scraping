@@ -1,14 +1,24 @@
-import { loadConfig } from '@rag/shared';
+import { loadConfig, createWorker, type ScrapeJob } from '@rag/shared';
+import { recordDeadLetter } from '@rag/db';
+import type { Job } from 'bullmq';
 
 const config = loadConfig();
-
 console.log(`[scraper-worker] started (env: ${config.NODE_ENV}, redis: ${config.REDIS_URL})`);
-console.log('[scraper-worker] waiting for BullMQ consumer — implemented in Phase 2/3');
 
-// Keep the process alive until the BullMQ worker (Phase 2) takes over this role.
-setInterval(() => {}, 1 << 30);
-
-process.on('SIGTERM', () => {
-  console.log('[scraper-worker] SIGTERM received, shutting down');
-  process.exit(0);
-});
+// Consume the `scrape` queue. The real fetch/robots/dedup/link-discovery logic lands in Phase 3;
+// this Phase-2 processor wires up the queue plumbing so scaling, retries, the dead-letter path and
+// graceful shutdown are all demonstrable now.
+createWorker(
+  'scrape',
+  async (job: Job<ScrapeJob>) => {
+    const { siteId, url, depth } = job.data;
+    console.log(`[scraper-worker] scrape job ${job.id}: site=${siteId} depth=${depth} url=${url}`);
+    // Phase 3: staticFetcher/jsFetcher → robots check → store page_version → enqueue `process`.
+    return { ok: true, url };
+  },
+  {
+    concurrency: 2,
+    // On permanent failure, persist to failed_jobs and copy to the dead-letter queue (task 2.3).
+    onFinalFailure: recordDeadLetter,
+  },
+);
