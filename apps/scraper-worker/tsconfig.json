@@ -2,7 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    // The DOM lib is for the callbacks passed to Playwright's page.evaluate() — that code runs
+    // inside the headless browser, where `document`/`window` exist. It does not change runtime.
+    "lib": ["ES2022", "DOM"]
   },
   "include": ["src"]
 }

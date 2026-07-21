@@ -77,14 +77,14 @@ Sequelize + `sequelize-cli` migrations (never `sync()` — migrations are the re
 
 ## Phase 3 — Scraper Workers (Day 2–3) ← biggest module
 
-- [ ] **3.1** Fetcher abstraction: `staticFetcher` (undici/fetch) + `jsFetcher` (Playwright, headless Chromium in the container) selected by `site.render_mode`
-- [ ] **3.2** robots.txt: fetch + cache per site, check every URL (`robots-parser`), respect `Crawl-delay`; skip disallowed URLs and log the decision (for the compliance note)
-- [ ] **3.3** Link discovery: extract same-domain links (Cheerio), normalize URLs, enqueue new ones — handles pagination/infinite-scroll site (Playwright scroll loop for infinite scroll)
-- [ ] **3.4** Deduplication: SHA-256 content hash — unchanged hash on re-crawl ⇒ skip processing (incremental re-crawls, explicit requirement)
-- [ ] **3.5** Store raw HTML → `page_versions`, then enqueue `process` job
-- [ ] **3.6** Failure handling: timeouts, HTTP 429/503 → exponential backoff; simulate/handle temporary IP block (treat repeated 403/429 as domain-level cooldown)
-- [ ] **3.7** Crawl depth / max-pages limits per site; crawl-session tracking (started, pages done, errors) for the UI
-- [ ] **3.8** **Horizontal scaling demo:** script that enqueues N URLs, measures wall-clock with 1 vs 4 workers → table/chart for the report
+- [x] **3.1** Fetcher abstraction: `staticFetcher` (fetch/undici) + `jsFetcher` (Playwright, headless Chromium) selected by `site.render_mode` — [fetchers.ts](apps/scraper-worker/src/crawler/fetchers.ts)
+- [x] **3.2** robots.txt: fetch + cache per site, check every URL (`robots-parser`), respect `Crawl-delay`; skip disallowed URLs and log the decision — [robots.ts](apps/scraper-worker/src/crawler/robots.ts)
+- [x] **3.3** Link discovery: extract same-domain links (Cheerio), normalize URLs, enqueue new ones; Playwright scroll loop for infinite scroll — [links.ts](apps/scraper-worker/src/crawler/links.ts)
+- [x] **3.4** Deduplication: SHA-256 content hash — unchanged hash on re-crawl ⇒ skip processing — [hash.ts](apps/scraper-worker/src/crawler/hash.ts)
+- [x] **3.5** Store raw HTML → `page_versions` (new version per crawl), then enqueue `process` job — [crawl.ts](apps/scraper-worker/src/crawler/crawl.ts)
+- [x] **3.6** Failure handling: timeouts + 429/503 → retryable (Phase-2 backoff); repeated 403/429 → Redis domain cooldown — [cooldown.ts](apps/scraper-worker/src/crawler/cooldown.ts)
+- [x] **3.7** Per-site crawl depth / max-pages limits (Redis budget) + `crawl_sessions` tracking (crawled/skipped/failed)
+- [x] **3.8** **Horizontal scaling demo:** [scripts/benchmark.ts](scripts/benchmark.ts) enqueues N URLs, measures wall-clock; run with `--scale scraper-worker=1` vs `=4`
 
 ## Phase 4 — Processing Worker (Day 3–4)
 
@@ -170,3 +170,5 @@ Vite + React + TS; keep it clean but simple ("basic interface" per the brief).
 | D7 | Streaming answers | Optional stretch goal — add SSE only if time remains on Day 6 |
 
 **Report note:** each of these must appear in the report with at least one rejected alternative (e.g. OpenAI vs Ollama, Express vs NestJS, pgvector vs Pinecone, BullMQ vs RabbitMQ, Playwright vs Selenium, Sequelize vs Prisma).
+
+docker compose exec postgres psql -U rag -d rag

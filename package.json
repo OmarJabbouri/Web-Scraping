@@ -19,7 +19,9 @@
     "db:seed": "npm run seed --workspace=@rag/db",
     "db:seed:undo": "npm run seed:undo --workspace=@rag/db",
     "test:phase2": "tsx scripts/test-phase2.ts",
-    "demo:enqueue": "tsx scripts/enqueue.ts"
+    "demo:enqueue": "tsx scripts/enqueue.ts",
+    "crawl": "tsx scripts/crawl.ts",
+    "benchmark": "tsx scripts/benchmark.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
