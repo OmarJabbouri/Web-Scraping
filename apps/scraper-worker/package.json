@@ -13,7 +13,10 @@
   "dependencies": {
     "@rag/db": "*",
     "@rag/shared": "*",
-    "bullmq": "^5.34.0"
+    "bullmq": "^5.34.0",
+    "cheerio": "^1.0.0",
+    "playwright": "^1.49.1",
+    "robots-parser": "^3.0.1"
   },
   "devDependencies": {
     "tsx": "^4.19.2"

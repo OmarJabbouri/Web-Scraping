@@ -18,4 +18,7 @@ COPY --from=build /repo/packages/db/package.json ./packages/db/package.json
 COPY --from=build /repo/packages/db/dist ./packages/db/dist
 COPY --from=build /repo/apps/scraper-worker/package.json ./apps/scraper-worker/package.json
 COPY --from=build /repo/apps/scraper-worker/dist ./apps/scraper-worker/dist
+# The JS fetcher (jsFetcher) needs a real Chromium + its system libraries. `--with-deps` installs
+# both, so js-rendered sites (e.g. quotes.toscrape.com/js) work inside the container.
+RUN npx playwright install --with-deps chromium
 CMD ["node", "apps/scraper-worker/dist/index.js"]

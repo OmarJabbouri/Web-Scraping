@@ -11,6 +11,8 @@ export class Site extends Model<InferAttributes<Site>, InferCreationAttributes<S
   declare crawlDelayMs: CreationOptional<number>;
   declare allowed: CreationOptional<boolean>;
   declare renderMode: RenderMode;
+  declare maxDepth: CreationOptional<number>;
+  declare maxPages: CreationOptional<number>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -24,6 +26,8 @@ Site.init(
     crawlDelayMs: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1000 },
     allowed: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
     renderMode: { type: DataTypes.ENUM('static', 'js'), allowNull: false, defaultValue: 'static' },
+    maxDepth: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 2 },
+    maxPages: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 50 },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },

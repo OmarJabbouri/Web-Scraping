@@ -15,6 +15,9 @@ export const scrapeJobSchema = z.object({
   siteId: z.number().int().positive(),
   url: z.string().url(),
   depth: z.number().int().min(0).default(0),
+  // Set when the URL belongs to a tracked crawl run — lets the worker bump that session's
+  // progress counters and enforce its page budget (Phase 3.7).
+  sessionId: z.number().int().positive().optional(),
 });
 export type ScrapeJob = z.infer<typeof scrapeJobSchema>;
 
