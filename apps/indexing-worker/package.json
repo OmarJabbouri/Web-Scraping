@@ -13,7 +13,9 @@
   "dependencies": {
     "@rag/db": "*",
     "@rag/shared": "*",
-    "bullmq": "^5.34.0"
+    "bullmq": "^5.34.0",
+    "js-tiktoken": "^1.0.21",
+    "openai": "^6.48.0"
   },
   "devDependencies": {
     "tsx": "^4.19.2"

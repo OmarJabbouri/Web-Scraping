@@ -88,20 +88,21 @@ Sequelize + `sequelize-cli` migrations (never `sync()` — migrations are the re
 
 ## Phase 4 — Processing Worker (Day 3–4)
 
-- [ ] **4.1** Boilerplate stripping: Mozilla Readability (jsdom) for article extraction + Cheerio fallback; remove scripts/nav/footers
-- [ ] **4.2** Extract **more than one content type**: body text + HTML tables (→ structured JSON) + document links (explicit requirement)
-- [ ] **4.3** Normalize into `documents` with zod schema validation before insert
-- [ ] **4.4** Enqueue `index` job on success
+- [x] **4.1** Boilerplate stripping: Mozilla Readability (jsdom) for article extraction + Cheerio fallback; remove scripts/nav/footers — [extract.ts](apps/processing-worker/src/processing/extract.ts)
+- [x] **4.2** Extract **more than one content type**: body text + HTML tables (→ structured JSON, incl. key-value tables) + document links (explicit requirement) — [tables.ts](apps/processing-worker/src/processing/tables.ts), [links.ts](apps/processing-worker/src/processing/links.ts)
+- [x] **4.3** Normalize into `documents` with zod schema validation before insert + content-type classification — [schema.ts](apps/processing-worker/src/processing/schema.ts), [process.ts](apps/processing-worker/src/processing/process.ts)
+- [x] **4.4** Enqueue `index` job on success — [process.ts](apps/processing-worker/src/processing/process.ts), [index.ts](apps/processing-worker/src/index.ts)
 
 ## Phase 5 — RAG: Indexing + Retrieval (Day 4–5)
 
-- [ ] **5.1** **Chunking — must be deliberate, not fixed-length** (explain trade-offs in report): recursive structure-aware splitting (headings → paragraphs → sentences), ~400–600 tokens with 10–15% overlap; keep heading path as chunk metadata
-- [ ] **5.2** Embeddings: batch-embed chunks, store in pgvector (see Decision D2 for provider)
-- [ ] **5.3** Retrieval function: query → embed → cosine similarity top-k (pgvector `<=>`)
-- [ ] **5.4** Hybrid search: combine vector similarity + Postgres full-text (tsvector) — e.g. Reciprocal Rank Fusion; gives you "keyword and semantic" search from one store
-- [ ] **5.5** Answer generation: top-k chunks + system prompt → LLM; require inline citation markers `[1] [2]` mapped to source URLs; return `{ answer, citations: [{url, title, snippet}] }`
-- [ ] **5.6** **Multi-source synthesis**: retrieval pulls from multiple sites; verify with test queries whose answers span ≥2 scraped sources (explicit requirement)
-- [ ] **5.7** Measurable retrieval quality: small golden set (~15–20 question → expected-source pairs); measure hit-rate@k / MRR; report the numbers
+- [x] **5.1** **Chunking — must be deliberate, not fixed-length** (explain trade-offs in report): recursive structure-aware splitting (paragraphs → sentences), ~500 tokens with ~12% overlap; heading path (page title) kept as chunk metadata — [chunk.ts](apps/indexing-worker/src/rag/chunk.ts), [tokens.ts](apps/indexing-worker/src/rag/tokens.ts)
+- [x] **5.2** Embeddings: batch-embed chunks (`text-embedding-3-small`), store in pgvector — [embed.ts](apps/indexing-worker/src/rag/embed.ts), [index-document.ts](apps/indexing-worker/src/rag/index-document.ts)
+- [x] **5.3** Retrieval function: query → embed → cosine similarity top-k (pgvector `<=>`) — [retrieve.ts](packages/rag/src/retrieve.ts) `vectorSearch`
+- [x] **5.4** Hybrid search: vector similarity + Postgres full-text (tsvector) via Reciprocal Rank Fusion; keyword arm OR-s lexemes for recall — [retrieve.ts](packages/rag/src/retrieve.ts) `keywordSearch`/`hybridSearch`
+- [x] **5.5** Answer generation: top-k chunks + system prompt → `gpt-4o-mini` (temp 0.2), inline `[n]` citations mapped to source URLs; returns `{ answer, citations }` — [answer.ts](packages/rag/src/answer.ts)
+- [x] **5.6** **Multi-source synthesis**: quotes.toscrape/js crawled + indexed alongside books.toscrape; multi-query retrieval ([retrieve.ts](packages/rag/src/retrieve.ts) `multiHybridSearch`) fuses per-intent results so a two-intent answer spans BOTH sites (verified in [eval-retrieval.ts](scripts/eval-retrieval.ts))
+- [x] **5.7** Measurable retrieval quality: 15-question golden set, k=5 — **semantic hit-rate 93% / MRR 0.867**, keyword 40% / 0.347, hybrid 80% / 0.622 — [eval-retrieval.ts](scripts/eval-retrieval.ts)
+      → finding: pure semantic wins on paraphrased Qs; keyword/hybrid pay off on exact terms (names, prices, codes)
 
 ## Phase 6 — API Service (Day 5)
 

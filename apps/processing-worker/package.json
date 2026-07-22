@@ -11,11 +11,16 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@mozilla/readability": "^0.5.0",
     "@rag/db": "*",
     "@rag/shared": "*",
-    "bullmq": "^5.34.0"
+    "bullmq": "^5.34.0",
+    "cheerio": "^1.0.0",
+    "jsdom": "^25.0.1",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@types/jsdom": "^21.1.7",
     "tsx": "^4.19.2"
   }
 }
