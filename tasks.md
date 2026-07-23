@@ -108,22 +108,24 @@ Sequelize + `sequelize-cli` migrations (never `sync()` — migrations are the re
 
 Framework: Express or Fastify (see Decision D3). Endpoints (all required):
 
-- [ ] **6.1** `GET /api/sites`, `POST /api/sites/:id/crawl` — trigger/inspect crawls
-- [ ] **6.2** `GET /api/pages`, `GET /api/pages/:id/raw` — raw scraped data (+ versions)
-- [ ] **6.3** `GET /api/documents`, `GET /api/documents/:id` — processed content
-- [ ] **6.4** `GET /api/search?q=&mode=keyword|semantic|hybrid` — search endpoint
-- [ ] **6.5** `POST /api/ask` — RAG Q&A with citations (source URLs)
-- [ ] **6.6** `GET /api/stats` — queue depths, pages crawled, chunks indexed (feeds the UI dashboard)
-- [ ] **6.7** OpenAPI/Swagger doc, zod request validation, error middleware, rate limiting
+- [x] **6.1** `GET /api/sites`, `GET /api/sites/:id`, `GET /api/sites/:id/crawls`, `POST /api/sites/:id/crawl` (202 + session) — [sites.routes.ts](apps/api/src/routes/sites.routes.ts), [crawl.service.ts](apps/api/src/services/crawl.service.ts)
+- [x] **6.2** `GET /api/pages`, `GET /api/pages/:id` (+version history), `GET /api/pages/:id/raw` (`?version=`, `?format=html`) — [pages.routes.ts](apps/api/src/routes/pages.routes.ts)
+- [x] **6.3** `GET /api/documents`, `GET /api/documents/:id` (structuredData + chunks) — [documents.routes.ts](apps/api/src/routes/documents.routes.ts)
+- [x] **6.4** `GET /api/search?q=&mode=keyword|semantic|hybrid&k=` — [search.routes.ts](apps/api/src/routes/search.routes.ts)
+- [x] **6.5** `POST /api/ask` — RAG Q&A with citations; `subQueries[]` triggers multi-source synthesis (5.6) — [ask.routes.ts](apps/api/src/routes/ask.routes.ts)
+- [x] **6.6** `GET /api/stats` — live queue depths (Redis) + pipeline totals + recent crawls — [stats.routes.ts](apps/api/src/routes/stats.routes.ts)
+- [x] **6.7** OpenAPI 3 + Swagger UI at `/api/docs`, zod validation ([schemas.ts](apps/api/src/schemas.ts) + 18 vitest tests), error middleware ([errors.ts](apps/api/src/http/errors.ts)), helmet + CORS + tiered rate limiting, graceful shutdown, `/health` with dependency probes — [app.ts](apps/api/src/app.ts)
+      → also fixed a latent scraper bug: per-run `maxPages`/`maxDepth` from the crawl session are now honored (worker previously always used the site-level ceiling) — [crawl.ts](apps/scraper-worker/src/crawler/crawl.ts) `resolveLimits`
 
 ## Phase 7 — React Web UI (Day 5–6)
 
-Vite + React + TS; keep it clean but simple ("basic interface" per the brief).
+Vite + React + TS + **Tailwind v4** (`@tailwindcss/vite`); dependency-free hash router. Same-origin `/api/*` (Vite proxy in dev, nginx in prod).
 
-- [ ] **7.1** Dashboard: crawl stats, queue status (poll `/api/stats` — "real-time data access")
-- [ ] **7.2** Search page: query box, mode toggle (keyword/semantic/hybrid), results with source links
-- [ ] **7.3** Ask page: question → streamed or spinner answer + clickable citations
-- [ ] **7.4** Pages browser: raw vs processed view, version history of a page
+- [x] **7.1** Dashboard: live pipeline totals + BullMQ queue depths + recent crawls, polls `/api/stats` every 4s (pauses on hidden tab); per-site **Crawl** button — [Dashboard.tsx](apps/web/src/pages/Dashboard.tsx)
+- [x] **7.2** Search page: query box, keyword/semantic/hybrid toggle, top-k, ranked results with score bars + source links + latency — [Search.tsx](apps/web/src/pages/Search.tsx)
+- [x] **7.3** Ask page: question → grounded answer with **inline clickable `[n]` citations** + citation list; optional multi-source sub-queries (5.6) — [Ask.tsx](apps/web/src/pages/Ask.tsx)
+- [x] **7.4** Pages browser: filter by site/status/URL + pagination ([Pages.tsx](apps/web/src/pages/Pages.tsx)); detail view with **version history**, **Raw HTML vs Processed** toggle, structured data + chunks — [PageDetail.tsx](apps/web/src/pages/PageDetail.tsx)
+      → data layer: typed client [api.ts](apps/web/src/api.ts), race-safe `useAsync`/`usePoll` hooks [hooks.ts](apps/web/src/hooks.ts); verified live (all routes render + load real data via headless Chromium)
 
 ## Phase 8 — Distribution, Fault Tolerance & Demos (Day 6)
 

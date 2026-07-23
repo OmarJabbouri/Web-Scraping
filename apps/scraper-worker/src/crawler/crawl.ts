@@ -94,7 +94,8 @@ export async function crawlUrl(job: Job<ScrapeJob>, redis: Redis): Promise<Crawl
   await enqueue('process', { pageVersionId: version.id });
 
   // 3.3 + 3.7 discover links and enqueue them, bounded by depth and the session page budget.
-  const discovered = await discoverAndEnqueue(html, finalUrl, site, depth, sessionId, redis);
+  const limits = await resolveLimits(sessionId, site);
+  const discovered = await discoverAndEnqueue(html, finalUrl, site, limits, depth, sessionId, redis);
 
   return finish(sessionId, 'crawled', { url, result: 'stored', discovered });
 }
@@ -118,15 +119,35 @@ async function upsertPageStatus(
   await page.save();
 }
 
+interface CrawlLimits {
+  maxDepth: number;
+  maxPages: number;
+}
+
+/**
+ * A crawl run's limits come from its `crawl_session` (what the operator asked for on this run,
+ * e.g. via `POST /api/sites/:id/crawl {maxPages}`), falling back to the site defaults when the job
+ * has no session. Without this the worker always used the site-level ceiling and silently ignored
+ * a smaller per-run budget.
+ */
+async function resolveLimits(sessionId: number | undefined, site: Site): Promise<CrawlLimits> {
+  if (sessionId !== undefined) {
+    const session = await CrawlSession.findByPk(sessionId, { attributes: ['maxDepth', 'maxPages'] });
+    if (session) return { maxDepth: session.maxDepth, maxPages: session.maxPages };
+  }
+  return { maxDepth: site.maxDepth, maxPages: site.maxPages };
+}
+
 async function discoverAndEnqueue(
   html: string,
   pageUrl: string,
   site: Site,
+  limits: CrawlLimits,
   depth: number,
   sessionId: number | undefined,
   redis: Redis,
 ): Promise<number> {
-  if (depth >= site.maxDepth) return 0;
+  if (depth >= limits.maxDepth) return 0;
 
   let enqueued = 0;
   for (const link of extractSameDomainLinks(html, pageUrl)) {
@@ -141,7 +162,7 @@ async function discoverAndEnqueue(
     // 3.7 page budget: stop enqueueing once the session hits max_pages (atomic across workers).
     if (sessionId !== undefined) {
       const n = await redis.incr(budgetKey(sessionId));
-      if (n > site.maxPages) {
+      if (n > limits.maxPages) {
         // We claimed this page but the budget is spent — mark it skipped, not left as "pending".
         page.status = 'skipped';
         await page.save();

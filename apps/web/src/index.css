@@ -1,0 +1,36 @@
+@import 'tailwindcss';
+
+/*
+ * Tailwind v4 CSS-first theme. `@theme` tokens become utility classes (e.g. `bg-brand-600`).
+ * A small brand ramp keeps the UI coherent without a JS config file.
+ */
+@theme {
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #e0e7ff;
+  --color-brand-200: #c7d2fe;
+  --color-brand-500: #6366f1;
+  --color-brand-600: #4f46e5;
+  --color-brand-700: #4338ca;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-slate-50 text-slate-800 antialiased;
+}
+
+/* A tiny pulse used by the "live" polling indicators so the demo reads as real-time. */
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.live-dot {
+  animation: live-pulse 1.6s ease-in-out infinite;
+}

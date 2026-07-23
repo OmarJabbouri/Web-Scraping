@@ -15,6 +15,8 @@ const redis = createRedisConnection();
 const worker = createWorker(
   'scrape',
   async (job: Job<ScrapeJob>) => {
+    // Simple lifecycle logging: one line when a URL starts crawling, one when it settles.
+    console.log(`[scraper-worker] RUNNING  ${job.data.url} (depth ${job.data.depth})`);
     const outcome = await crawlUrl(job, redis);
     const extra = outcome.discovered
       ? ` (+${outcome.discovered} links)`

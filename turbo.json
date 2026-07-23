@@ -1,8 +1,8 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "ui": "tui",
+  "ui": "stream",
   "globalDependencies": ["tsconfig.base.json"],
-  "globalEnv": ["NODE_ENV", "PORT", "DATABASE_URL", "REDIS_URL", "OPENAI_API_KEY"],
+  "globalEnv": ["NODE_ENV", "PORT", "DATABASE_URL", "REDIS_URL", "OPENAI_API_KEY", "CORS_ORIGIN"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
