@@ -1,29 +1,41 @@
-import express from 'express';
-import { loadConfig, getAllQueues } from '@rag/shared';
-import { createBullBoard } from '@bull-board/api';
-import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
-import { ExpressAdapter } from '@bull-board/express';
+import { createRedisConnection, closeQueues, loadConfig } from '@rag/shared';
+import { sequelize } from '@rag/db';
+import { createApp } from './app.js';
 
 const config = loadConfig();
-const app = express();
+// One long-lived connection for health probes. The queues keep their own (BullMQ requires a
+// dedicated connection per Queue/Worker), so this one only ever serves PINGs.
+const redis = createRedisConnection({ maxRetriesPerRequest: 2, lazyConnect: false });
 
-app.use(express.json());
-
-app.get(['/health', '/api/health'], (_req, res) => {
-  res.json({ status: 'ok', service: 'api', env: config.NODE_ENV });
+const app = createApp(config, redis);
+const server = app.listen(config.PORT, () => {
+  console.log(`[api] listening on http://localhost:${config.PORT}`);
+  console.log(`[api] docs        http://localhost:${config.PORT}/api/docs`);
+  console.log(`[api] queues      http://localhost:${config.PORT}/admin/queues`);
 });
 
-// Bull Board (task 2.5): a live dashboard over every queue — depth, active/completed/failed jobs,
-// retries and the dead-letter queue. Great for the demo video and for showing fault tolerance.
-const bullBoardAdapter = new ExpressAdapter();
-bullBoardAdapter.setBasePath('/admin/queues');
-createBullBoard({
-  queues: getAllQueues().map((queue) => new BullMQAdapter(queue)),
-  serverAdapter: bullBoardAdapter,
-});
-app.use('/admin/queues', bullBoardAdapter.getRouter());
+/**
+ * Graceful shutdown (mirrors the workers, task 2.6): stop accepting connections, let in-flight
+ * requests finish, then release Redis/Postgres. Without this, `docker compose down` would cut
+ * live requests and leave queue connections dangling.
+ */
+let shuttingDown = false;
+async function shutdown(signal: string): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`[api] ${signal} received — shutting down`);
 
-app.listen(config.PORT, () => {
-  console.log(`[api] listening on port ${config.PORT}`);
-  console.log(`[api] Bull Board dashboard at http://localhost:${config.PORT}/admin/queues`);
-});
+  const forceExit = setTimeout(() => {
+    console.error('[api] shutdown timed out — forcing exit');
+    process.exit(1);
+  }, 10_000);
+  forceExit.unref();
+
+  await new Promise<void>((resolve) => server.close(() => resolve()));
+  await Promise.allSettled([closeQueues(), redis.quit(), sequelize.close()]);
+  console.log('[api] shutdown complete');
+  process.exit(0);
+}
+
+process.on('SIGTERM', () => void shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));
